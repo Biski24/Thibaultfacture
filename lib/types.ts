@@ -91,10 +91,10 @@ export interface Database {
   };
 }
 
-export interface InvoiceWithRelations extends Database['public']['Tables']['invoices']['Row'] {
+export type InvoiceWithRelations = Database['public']['Tables']['invoices']['Row'] & {
   client: Database['public']['Tables']['clients']['Row'];
   lines: Database['public']['Tables']['invoice_lines']['Row'][];
-}
+};
 
 export interface InvoiceFormLine {
   description: string;
