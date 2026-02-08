@@ -11,6 +11,7 @@ const emptyLine: InvoiceFormLine = { description: '', qty: 1, unit: 'unité', un
 export default function NewInvoicePage() {
   const router = useRouter();
   const [client, setClient] = useState({ name: '', address: '', email: '', phone: '' });
+  const [company, setCompany] = useState({ ...COMPANY });
   const [invoice, setInvoice] = useState({
     issue_date: new Date().toISOString().slice(0, 10),
     due_date: '',
@@ -44,7 +45,7 @@ export default function NewInvoicePage() {
     setLoading(true);
 
     try {
-      const id = await createInvoiceWithClient({ client, company: COMPANY, invoice, lines });
+      const id = await createInvoiceWithClient({ client, company, invoice, lines });
       router.push(`/invoices/${id}`);
     } catch (err: any) {
       setError(err?.message || 'Enregistrement impossible.');
@@ -60,13 +61,14 @@ export default function NewInvoicePage() {
       </div>
 
       <form id="invoice-form" className="space-y-6" onSubmit={handleSubmit}>
-        <Section title="Entreprise (fixe)">
-          <div className="grid grid-cols-1 md:grid-cols-2 gap-4 text-sm text-slate-700">
-            <div><span className="label block">Nom</span><p>{COMPANY.name}</p></div>
-            <div><span className="label block">SIRET</span><p>{COMPANY.siret || '—'}</p></div>
-            <div><span className="label block">Téléphone</span><p>{COMPANY.phone}</p></div>
-            <div><span className="label block">Email</span><p>{COMPANY.email || '—'}</p></div>
-            <div className="md:col-span-2"><span className="label block">Adresse</span><p className="whitespace-pre-line">{COMPANY.address}</p></div>
+        <Section title="Entreprise">
+          <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <Input label="Nom / Raison sociale" value={company.name} onChange={(v) => setCompany({ ...company, name: v })} required />
+            <Input label="SIRET" value={company.siret} onChange={(v) => setCompany({ ...company, siret: v })} />
+            <Input label="Téléphone" value={company.phone} onChange={(v) => setCompany({ ...company, phone: v })} />
+            <Input label="Email" type="email" value={company.email} onChange={(v) => setCompany({ ...company, email: v })} />
+            <Input label="Adresse" value={company.address} onChange={(v) => setCompany({ ...company, address: v })} className="md:col-span-2" />
+            <Input label="Logo (URL)" value={company.logo_url} onChange={(v) => setCompany({ ...company, logo_url: v })} className="md:col-span-2" />
           </div>
         </Section>
 

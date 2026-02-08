@@ -52,54 +52,6 @@ function save(data: StoreData) {
 function ensureSample() {
   const data = load();
   if (data.seeded) return;
-  if (data.invoices.length > 0) {
-    data.seeded = true;
-    save(data);
-    return;
-  }
-  const clientId = crypto.randomUUID();
-  data.clients.push({
-    id: clientId,
-    name: 'Société Démo',
-    address: '12 Rue des Chantiers\n75000 Paris',
-    email: 'client@demo.fr',
-    phone: '0600000000',
-    created_at: new Date().toISOString()
-  });
-  const invoiceId = crypto.randomUUID();
-  const year = new Date().getFullYear();
-  data.counters[String(year)] = 1;
-  data.invoices.push({
-    id: invoiceId,
-    number: `${year}-0001`,
-    client_id: clientId,
-    issue_date: new Date().toISOString().slice(0, 10),
-    due_date: null,
-    reference: 'CHANTIER-001',
-    notes: 'Merci de régler sous 30 jours.',
-    company_name: 'Auto-entreprise BTP',
-    company_address: '45 Avenue du Progrès\n69000 Lyon',
-    company_phone: '0700000000',
-    company_email: 'contact@btp.fr',
-    company_siret: '12345678900011',
-    company_logo_url: null,
-    subtotal_ht: 300,
-    tva_enabled: false,
-    tva_rate: null,
-    tva_amount: null,
-    total_ttc: 300,
-    status: 'pending',
-    created_at: new Date().toISOString()
-  });
-  data.lines.push({
-    id: crypto.randomUUID(),
-    invoice_id: invoiceId,
-    description: 'Carottage béton',
-    qty: 2,
-    unit: 'unité',
-    unit_price: 150,
-    line_total: 300
-  });
   data.seeded = true;
   save(data);
 }

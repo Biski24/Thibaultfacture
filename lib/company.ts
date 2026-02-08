@@ -3,6 +3,6 @@ export const COMPANY = {
   address: '1 Avenue Jules Ferry\n13410 LAMBESC',
   phone: '06 60 73 88 37',
   email: '',
-  siret: '',
+  siret: '52813539500010',
   logo_url: ''
 };
