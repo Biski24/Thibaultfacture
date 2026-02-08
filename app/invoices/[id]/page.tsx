@@ -36,17 +36,17 @@ export default function InvoiceDetailPage() {
 
       <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
         <InfoCard title="Entreprise">
-          <p className="font-medium">{invoice.company_name || '—'}</p>
-          <p className="text-sm text-slate-600 whitespace-pre-line">{invoice.company_address}</p>
-          <p className="text-sm text-slate-600">{invoice.company_email}</p>
-          <p className="text-sm text-slate-600">{invoice.company_phone}</p>
-          {invoice.company_siret && <p className="text-sm text-slate-600">SIRET: {invoice.company_siret}</p>}
+          <p className="font-medium break-words">{invoice.company_name || '—'}</p>
+          <p className="text-sm text-slate-600 whitespace-pre-line break-words">{invoice.company_address}</p>
+          <p className="text-sm text-slate-600 break-words">{invoice.company_email}</p>
+          <p className="text-sm text-slate-600 break-words">{invoice.company_phone}</p>
+          {invoice.company_siret && <p className="text-sm text-slate-600 break-words">SIRET: {invoice.company_siret}</p>}
         </InfoCard>
         <InfoCard title="Client">
-          <p className="font-medium">{invoice.client.name}</p>
-          <p className="text-sm text-slate-600 whitespace-pre-line">{invoice.client.address}</p>
-          <p className="text-sm text-slate-600">{invoice.client.email}</p>
-          <p className="text-sm text-slate-600">{invoice.client.phone}</p>
+          <p className="font-medium break-words">{invoice.client.name}</p>
+          <p className="text-sm text-slate-600 whitespace-pre-line break-words">{invoice.client.address}</p>
+          <p className="text-sm text-slate-600 break-words">{invoice.client.email}</p>
+          <p className="text-sm text-slate-600 break-words">{invoice.client.phone}</p>
         </InfoCard>
       </div>
 
@@ -64,11 +64,11 @@ export default function InvoiceDetailPage() {
           <tbody>
             {invoice.lines.map((l) => (
               <tr key={l.id} className="border-b last:border-0">
-                <td className="py-3">{l.description}</td>
-                <td>{l.qty}</td>
-                <td>{l.unit}</td>
-                <td>{formatCurrency(l.unit_price)}</td>
-                <td>{formatCurrency(l.line_total)}</td>
+                <td className="py-3 break-words">{l.description}</td>
+                <td className="break-words">{l.qty}</td>
+                <td className="break-words">{l.unit}</td>
+                <td className="break-words">{formatCurrency(l.unit_price)}</td>
+                <td className="break-words">{formatCurrency(l.line_total)}</td>
               </tr>
             ))}
           </tbody>

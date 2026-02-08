@@ -19,11 +19,11 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
   doc.setFontSize(12);
   doc.text('Entreprise', 350, companyY);
   doc.setFontSize(10);
-  if (invoice.company_name) doc.text(invoice.company_name, 350, companyY + 14);
+  if (invoice.company_name) doc.text(invoice.company_name, 350, companyY + 14, { maxWidth: 180 });
   if (invoice.company_address) doc.text(invoice.company_address, 350, companyY + 28, { maxWidth: 180 });
-  if (invoice.company_email) doc.text(invoice.company_email, 350, companyY + 42);
-  if (invoice.company_phone) doc.text(invoice.company_phone, 350, companyY + 56);
-  if (invoice.company_siret) doc.text(`SIRET: ${invoice.company_siret}`, 350, companyY + 70);
+  if (invoice.company_email) doc.text(invoice.company_email, 350, companyY + 42, { maxWidth: 180 });
+  if (invoice.company_phone) doc.text(invoice.company_phone, 350, companyY + 56, { maxWidth: 180 });
+  if (invoice.company_siret) doc.text(`SIRET: ${invoice.company_siret}`, 350, companyY + 70, { maxWidth: 180 });
 
   const clientY = startY + 90;
   doc.setFontSize(12);
@@ -59,7 +59,7 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
     doc.text(`Total HT : ${formatCurrency(invoice.total_ttc)}`, margin, subtotalTextY + 16);
   }
 
-  if (invoice.notes) doc.text(`Notes : ${invoice.notes}`, margin, subtotalTextY + 60, { maxWidth: 500 });
+  if (invoice.notes) doc.text(`Notes : ${invoice.notes}`, margin, subtotalTextY + 60, { maxWidth: 500, lineHeightFactor: 1.4 });
 
   doc.save(`facture-${invoice.number}.pdf`);
 }
