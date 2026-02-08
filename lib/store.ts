@@ -27,18 +27,20 @@ type StoreData = {
   invoices: Invoice[];
   lines: InvoiceLine[];
   counters: Record<string, number>; // per year
+  seeded: boolean;
 };
 
 const STORAGE_KEY = 'facturation_mvp_store';
 
 function load(): StoreData {
-  if (typeof window === 'undefined') return { clients: [], invoices: [], lines: [], counters: {} };
+  if (typeof window === 'undefined') return { clients: [], invoices: [], lines: [], counters: {}, seeded: false };
   try {
     const raw = localStorage.getItem(STORAGE_KEY);
-    if (!raw) return { clients: [], invoices: [], lines: [], counters: {} };
-    return JSON.parse(raw);
+    if (!raw) return { clients: [], invoices: [], lines: [], counters: {}, seeded: false };
+    const parsed = JSON.parse(raw);
+    return { seeded: false, ...parsed };
   } catch {
-    return { clients: [], invoices: [], lines: [], counters: {} };
+    return { clients: [], invoices: [], lines: [], counters: {}, seeded: false };
   }
 }
 
@@ -49,7 +51,12 @@ function save(data: StoreData) {
 
 function ensureSample() {
   const data = load();
-  if (data.invoices.length > 0) return;
+  if (data.seeded) return;
+  if (data.invoices.length > 0) {
+    data.seeded = true;
+    save(data);
+    return;
+  }
   const clientId = crypto.randomUUID();
   data.clients.push({
     id: clientId,
@@ -93,6 +100,7 @@ function ensureSample() {
     unit_price: 150,
     line_total: 300
   });
+  data.seeded = true;
   save(data);
 }
 
