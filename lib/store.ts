@@ -103,6 +103,66 @@ export async function duplicateInvoice(id: string) {
   return newId;
 }
 
+export async function updateInvoiceFull(params: {
+  invoiceId: string;
+  client: { id: string; name: string; address?: string; email?: string; phone?: string };
+  company: { name?: string; address?: string; phone?: string; email?: string; siret?: string; logo_url?: string };
+  invoice: { issue_date: string; due_date?: string; reference?: string; notes?: string; tva_enabled: boolean; tva_rate: number };
+  lines: InvoiceFormLine[];
+}) {
+  const { invoiceId, client, company, invoice, lines } = params;
+  const data = load();
+  const inv = data.invoices.find((i) => i.id === invoiceId);
+  if (!inv) return;
+
+  // update client
+  const clientRef = data.clients.find((c) => c.id === inv.client_id);
+  if (clientRef) {
+    clientRef.name = client.name;
+    clientRef.address = client.address || null;
+    clientRef.email = client.email || null;
+    clientRef.phone = client.phone || null;
+  }
+
+  const subtotal = lines.reduce((acc, l) => acc + l.qty * l.unit_price, 0);
+  const tvaAmount = invoice.tva_enabled ? (subtotal * invoice.tva_rate) / 100 : 0;
+  const total = subtotal + tvaAmount;
+
+  Object.assign(inv, {
+    issue_date: invoice.issue_date,
+    due_date: invoice.due_date || null,
+    reference: invoice.reference || null,
+    notes: invoice.notes || null,
+    company_name: company.name || null,
+    company_address: company.address || null,
+    company_phone: company.phone || null,
+    company_email: company.email || null,
+    company_siret: company.siret || null,
+    company_logo_url: company.logo_url || null,
+    subtotal_ht: subtotal,
+    tva_enabled: invoice.tva_enabled,
+    tva_rate: invoice.tva_enabled ? invoice.tva_rate : null,
+    tva_amount: invoice.tva_enabled ? tvaAmount : null,
+    total_ttc: total
+  });
+
+  // replace lines
+  data.lines = data.lines.filter((l) => l.invoice_id !== invoiceId);
+  lines.forEach((l) => {
+    data.lines.push({
+      id: crypto.randomUUID(),
+      invoice_id: invoiceId,
+      description: l.description,
+      qty: l.qty,
+      unit: l.unit,
+      unit_price: l.unit_price,
+      line_total: l.qty * l.unit_price
+    });
+  });
+
+  save(data);
+}
+
 export async function createInvoiceWithClient(params: {
   client: { name: string; address?: string; email?: string; phone?: string };
   company: { name?: string; address?: string; phone?: string; email?: string; siret?: string; logo_url?: string };

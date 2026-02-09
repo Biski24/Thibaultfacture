@@ -6,7 +6,7 @@ import { computeTotals } from '@/lib/calc';
 import { createInvoiceWithClient } from '@/lib/store';
 import { COMPANY } from '@/lib/company';
 
-const emptyLine: InvoiceFormLine = { description: '', qty: 1, unit: 'unité', unit_price: 0 };
+const emptyLine: InvoiceFormLine = { description: 'Prestation de services', qty: 1, unit: 'unité', unit_price: 0 };
 
 export default function NewInvoicePage() {
   const router = useRouter();
@@ -20,7 +20,7 @@ export default function NewInvoicePage() {
     tva_enabled: false,
     tva_rate: 20
   });
-  const [lines, setLines] = useState<InvoiceFormLine[]>([{ ...emptyLine }]);
+  const [lines, setLines] = useState<InvoiceFormLine[]>([{ ...emptyLine, description: 'Prestation de services' }]);
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
@@ -87,30 +87,6 @@ export default function NewInvoicePage() {
             <Input label="Échéance" type="date" value={invoice.due_date} onChange={(v) => setInvoice({ ...invoice, due_date: v })} />
             <Input label="Référence chantier" value={invoice.reference} onChange={(v) => setInvoice({ ...invoice, reference: v })} />
           </div>
-          <div className="flex items-center gap-3 mt-3">
-            <label className="flex items-center gap-2 text-sm">
-              <input
-                type="checkbox"
-                checked={invoice.tva_enabled}
-                onChange={(e) => setInvoice({ ...invoice, tva_enabled: e.target.checked })}
-                className="rounded border-slate-300"
-              />
-              TVA activée
-            </label>
-            {invoice.tva_enabled && (
-              <div className="flex items-center gap-2">
-                <span className="text-sm text-slate-600">Taux (%)</span>
-                <input
-                  type="number"
-                  min={0}
-                  step={0.1}
-                  value={invoice.tva_rate}
-                  onChange={(e) => setInvoice({ ...invoice, tva_rate: Number(e.target.value) })}
-                  className="input w-24"
-                />
-              </div>
-            )}
-          </div>
         </Section>
 
         <Section title="Lignes">
@@ -119,7 +95,7 @@ export default function NewInvoicePage() {
               <div key={idx} className="grid grid-cols-1 md:grid-cols-12 gap-3 items-end">
                 <div className="md:col-span-5">
                   <Input
-                    label="Description"
+                    label="Désignation"
                     value={line.description}
                     onChange={(v) => updateLine(idx, { description: v })}
                     placeholder="Carottage / perçage"
@@ -188,6 +164,9 @@ export default function NewInvoicePage() {
               <span>Total {invoice.tva_enabled ? 'TTC' : 'HT'}</span>
               <span>{formatCurrency(totals.total)}</span>
             </div>
+            {!invoice.tva_enabled && (
+              <p className="text-xs text-slate-600 pt-1">TVA non applicable, art. 293 B du CGI</p>
+            )}
           </div>
         </Section>
 
