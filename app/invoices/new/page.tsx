@@ -36,6 +36,11 @@ export default function NewInvoicePage() {
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
     setError('');
+    const session = typeof window !== 'undefined' ? localStorage.getItem('session_user') : null;
+    if (!session) {
+      router.replace('/login');
+      return;
+    }
 
     if (!client.name) return setError('Client requis');
     if (lines.length === 0 || lines.some((l) => !l.description || l.qty <= 0 || l.unit_price < 0)) {

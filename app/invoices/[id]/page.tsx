@@ -22,6 +22,11 @@ export default function InvoiceDetailPage() {
   const totals = useMemo(() => computeTotals(lines, form.tva_enabled, form.tva_rate), [lines, form]);
 
   useEffect(() => {
+    const session = typeof window !== 'undefined' ? localStorage.getItem('session_user') : null;
+    if (!session) {
+      router.replace('/login');
+      return;
+    }
     const load = async () => {
       const data = await getInvoice(id);
       setInvoice(data);

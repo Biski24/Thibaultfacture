@@ -4,12 +4,19 @@ import { useEffect, useState } from 'react';
 import { InvoiceWithRelations } from '@/lib/types';
 import { generateInvoicePdf } from '@/lib/pdf';
 import { listInvoices, updateInvoiceStatus, deleteInvoice, duplicateInvoice } from '@/lib/store';
+import { useRouter } from 'next/navigation';
 
 export default function InvoicesPage() {
+  const router = useRouter();
   const [invoices, setInvoices] = useState<InvoiceWithRelations[]>([]);
   const [loading, setLoading] = useState(true);
 
   const load = async () => {
+    const session = typeof window !== 'undefined' ? localStorage.getItem('session_user') : null;
+    if (!session) {
+      router.replace('/login');
+      return;
+    }
     setLoading(true);
     const data = await listInvoices();
     setInvoices(data);

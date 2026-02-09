@@ -3,12 +3,19 @@ import { useEffect, useState } from 'react';
 import { InvoiceWithRelations } from '@/lib/types';
 import Link from 'next/link';
 import { listInvoices } from '@/lib/store';
+import { useRouter } from 'next/navigation';
 
 export default function Dashboard() {
+  const router = useRouter();
   const [totals, setTotals] = useState({ count: 0, pending: 0, paid: 0, revenue: 0 });
   const [latest, setLatest] = useState<InvoiceWithRelations[]>([]);
 
   useEffect(() => {
+    const session = typeof window !== 'undefined' ? localStorage.getItem('session_user') : null;
+    if (!session) {
+      router.replace('/login');
+      return;
+    }
     const load = async () => {
       const invoices = await listInvoices();
       const revenue = invoices.reduce((acc, i) => acc + i.total_ttc, 0);
