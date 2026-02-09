@@ -29,17 +29,53 @@ export default function Dashboard() {
 
   return (
     <div className="space-y-6">
-      <div className="grid grid-cols-1 gap-4 sm:grid-cols-2 lg:grid-cols-4">
-        <StatCard label="Factures" value={totals.count} />
-        <StatCard label="En attente" value={totals.pending} />
-        <StatCard label="Payées" value={totals.paid} />
-        <StatCard label="CA" value={formatCurrency(totals.revenue)} />
+      <div className="grid grid-cols-1 gap-3 sm:hidden">
+        <StatCard label="Factures" value={totals.count} className="w-full" />
+        <StatCard label="En attente" value={totals.pending} className="w-full" />
+        <StatCard label="Payées" value={totals.paid} className="w-full" />
+        <StatCard label="CA" value={formatCurrency(totals.revenue)} className="w-full" />
       </div>
 
-      <div className="card p-4 sm:p-5">
-        <div className="mb-3 flex flex-wrap items-center justify-between gap-3">
+      <div className="hidden flex-wrap gap-4 sm:flex">
+        <StatCard label="Factures" value={totals.count} className="w-64" />
+        <StatCard label="En attente" value={totals.pending} className="w-64" />
+        <StatCard label="Payées" value={totals.paid} className="w-64" />
+        <StatCard label="CA" value={formatCurrency(totals.revenue)} className="w-64" />
+      </div>
+
+      <div className="card p-4 sm:hidden">
+        <div className="mb-3 space-y-3">
           <h2 className="text-lg font-semibold">Dernières factures</h2>
-          <Link className="btn btn-primary w-full sm:w-auto" href="/invoices/new">Créer</Link>
+          <Link className="btn btn-primary w-full" href="/invoices/new">Créer</Link>
+        </div>
+
+        <div className="space-y-3">
+          {latest.map((inv) => (
+            <div key={inv.id} className="rounded-lg border border-slate-200 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium">{inv.number}</p>
+                <span className={`badge ${inv.status === 'paid' ? 'badge-success' : 'badge-warning'}`}>
+                  {inv.status === 'paid' ? 'Payée' : 'En attente'}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-slate-600">{inv.client.name}</p>
+              <div className="mt-2 flex items-center justify-between text-sm">
+                <span>{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</span>
+                <span className="font-medium">{formatCurrency(inv.total_ttc)}</span>
+              </div>
+              <Link className="mt-2 inline-block text-sm text-accent" href={`/invoices/${inv.id}`}>
+                Voir
+              </Link>
+            </div>
+          ))}
+          {latest.length === 0 && <p className="py-2 text-center text-slate-500">Aucune facture pour le moment.</p>}
+        </div>
+      </div>
+
+      <div className="hidden card p-5 sm:block">
+        <div className="flex items-center justify-between mb-3">
+          <h2 className="text-lg font-semibold">Dernières factures</h2>
+          <Link className="btn btn-primary" href="/invoices/new">Créer</Link>
         </div>
         <div className="overflow-x-auto">
           <table className="min-w-full text-sm">
@@ -56,16 +92,16 @@ export default function Dashboard() {
             <tbody>
               {latest.map((inv) => (
                 <tr key={inv.id} className="border-b last:border-0">
-                  <td className="py-3 font-medium whitespace-nowrap">{inv.number}</td>
-                  <td className="whitespace-nowrap">{inv.client.name}</td>
-                  <td className="whitespace-nowrap">{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</td>
-                  <td className="whitespace-nowrap">{formatCurrency(inv.total_ttc)}</td>
+                  <td className="py-3 font-medium">{inv.number}</td>
+                  <td>{inv.client.name}</td>
+                  <td>{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</td>
+                  <td>{formatCurrency(inv.total_ttc)}</td>
                   <td>
                     <span className={`badge ${inv.status === 'paid' ? 'badge-success' : 'badge-warning'}`}>
                       {inv.status === 'paid' ? 'Payée' : 'En attente'}
                     </span>
                   </td>
-                  <td className="py-3 text-right whitespace-nowrap">
+                  <td className="text-right">
                     <Link className="text-accent" href={`/invoices/${inv.id}`}>
                       Voir
                     </Link>
@@ -87,9 +123,17 @@ export default function Dashboard() {
   );
 }
 
-function StatCard({ label, value }: { label: string; value: number | string }) {
+function StatCard({
+  label,
+  value,
+  className
+}: {
+  label: string;
+  value: number | string;
+  className?: string;
+}) {
   return (
-    <div className="card p-4 w-full">
+    <div className={`card p-4 ${className || ''}`}>
       <div className="text-sm text-slate-500">{label}</div>
       <div className="text-2xl font-semibold">{value}</div>
     </div>

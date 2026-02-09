@@ -45,12 +45,49 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex flex-wrap items-center justify-between gap-3">
+      <div className="space-y-3 sm:hidden">
         <h1 className="text-2xl font-semibold">Historique des factures</h1>
-        <Link className="btn btn-primary w-full sm:w-auto" href="/invoices/new">Nouvelle facture</Link>
+        <Link className="btn btn-primary w-full" href="/invoices/new">Nouvelle facture</Link>
       </div>
 
-      <div className="card overflow-x-auto">
+      <div className="hidden items-center justify-between sm:flex">
+        <h1 className="text-2xl font-semibold">Historique des factures</h1>
+        <Link className="btn btn-primary" href="/invoices/new">Nouvelle facture</Link>
+      </div>
+
+      <div className="card p-4 sm:hidden">
+        {loading && <p className="py-4 text-center">Chargement...</p>}
+        {!loading && invoices.length === 0 && <p className="py-4 text-center text-slate-500">Aucune facture</p>}
+
+        <div className="space-y-3">
+          {!loading && invoices.map((inv) => (
+            <div key={inv.id} className="rounded-lg border border-slate-200 p-3">
+              <div className="flex items-center justify-between gap-2">
+                <p className="font-medium">{inv.number}</p>
+                <span className={`badge ${inv.status === 'paid' ? 'badge-success' : 'badge-warning'}`}>
+                  {inv.status === 'paid' ? 'Payée' : 'En attente'}
+                </span>
+              </div>
+              <p className="mt-1 text-sm text-slate-600">{inv.client.name}</p>
+              <div className="mt-2 flex items-center justify-between text-sm">
+                <span>{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</span>
+                <span className="font-medium">{formatCurrency(inv.total_ttc)}</span>
+              </div>
+              <div className="mt-3 flex flex-wrap gap-3 text-sm">
+                <Link className="text-accent" href={`/invoices/${inv.id}`}>Voir</Link>
+                <button className="text-accent" onClick={() => generateInvoicePdf(inv)}>PDF</button>
+                <button className="text-accent" onClick={() => duplicate(inv)}>Dupliquer</button>
+                <button className="text-accent" onClick={() => updateStatus(inv.id, inv.status === 'paid' ? 'pending' : 'paid')}>
+                  {inv.status === 'paid' ? 'Marquer impayée' : 'Marquer payée'}
+                </button>
+                <button className="text-red-600" onClick={() => remove(inv.id)}>Supprimer</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      </div>
+
+      <div className="hidden card overflow-x-auto sm:block">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b">
@@ -71,25 +108,23 @@ export default function InvoicesPage() {
             )}
             {invoices.map((inv) => (
               <tr key={inv.id} className="border-b last:border-0">
-                <td className="py-3 font-medium whitespace-nowrap">{inv.number}</td>
-                <td className="whitespace-nowrap">{inv.client.name}</td>
-                <td className="whitespace-nowrap">{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</td>
-                <td className="whitespace-nowrap">{formatCurrency(inv.total_ttc)}</td>
+                <td className="py-3 font-medium">{inv.number}</td>
+                <td>{inv.client.name}</td>
+                <td>{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</td>
+                <td>{formatCurrency(inv.total_ttc)}</td>
                 <td>
                   <span className={`badge ${inv.status === 'paid' ? 'badge-success' : 'badge-warning'}`}>
                     {inv.status === 'paid' ? 'Payée' : 'En attente'}
                   </span>
                 </td>
-                <td className="py-3">
-                  <div className="flex min-w-[18rem] flex-wrap gap-x-3 gap-y-1 text-sm">
-                    <Link className="text-accent" href={`/invoices/${inv.id}`}>Voir</Link>
-                    <button className="text-accent" onClick={() => generateInvoicePdf(inv)}>PDF</button>
-                    <button className="text-accent" onClick={() => duplicate(inv)}>Dupliquer</button>
-                    <button className="text-accent" onClick={() => updateStatus(inv.id, inv.status === 'paid' ? 'pending' : 'paid')}>
-                      {inv.status === 'paid' ? 'Marquer impayée' : 'Marquer payée'}
-                    </button>
-                    <button className="text-red-600" onClick={() => remove(inv.id)}>Supprimer</button>
-                  </div>
+                <td className="space-x-2 text-sm">
+                  <Link className="text-accent" href={`/invoices/${inv.id}`}>Voir</Link>
+                  <button className="text-accent" onClick={() => generateInvoicePdf(inv)}>PDF</button>
+                  <button className="text-accent" onClick={() => duplicate(inv)}>Dupliquer</button>
+                  <button className="text-accent" onClick={() => updateStatus(inv.id, inv.status === 'paid' ? 'pending' : 'paid')}>
+                    {inv.status === 'paid' ? 'Marquer impayée' : 'Marquer payée'}
+                  </button>
+                  <button className="text-red-600" onClick={() => remove(inv.id)}>Supprimer</button>
                 </td>
               </tr>
             ))}
