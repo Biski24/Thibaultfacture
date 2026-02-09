@@ -1,11 +1,18 @@
 import { supabase } from './supabaseClient';
 import { InvoiceFormLine, InvoiceStatus, InvoiceWithRelations } from './types';
 
-const db = supabase! as any;
+function db() {
+  if (!supabase) {
+    throw new Error(
+      'Supabase non configuré. Renseigne NEXT_PUBLIC_SUPABASE_URL et NEXT_PUBLIC_SUPABASE_ANON_KEY dans .env.local puis relance npm run dev.'
+    );
+  }
+  return supabase as any;
+}
 
 // Liste les factures avec client + lignes
 export async function listInvoices(): Promise<InvoiceWithRelations[]> {
-  const { data, error } = await db
+  const { data, error } = await db()
     .from('invoices')
     .select('*, client:clients(*), lines:invoice_lines(*)')
     .order('issue_date', { ascending: false });
@@ -14,7 +21,7 @@ export async function listInvoices(): Promise<InvoiceWithRelations[]> {
 }
 
 export async function getInvoice(id: string): Promise<InvoiceWithRelations | null> {
-  const { data, error } = await db
+  const { data, error } = await db()
     .from('invoices')
     .select('*, client:clients(*), lines:invoice_lines(*)')
     .eq('id', id)
@@ -24,20 +31,20 @@ export async function getInvoice(id: string): Promise<InvoiceWithRelations | nul
 }
 
 export async function updateInvoiceStatus(id: string, status: InvoiceStatus) {
-  const { error } = await db.from('invoices').update({ status }).eq('id', id);
+  const { error } = await db().from('invoices').update({ status }).eq('id', id);
   if (error) throw error;
 }
 
 export async function deleteInvoice(id: string) {
   // cascade handle lines
-  const { error } = await db.from('invoices').delete().eq('id', id);
+  const { error } = await db().from('invoices').delete().eq('id', id);
   if (error) throw error;
 }
 
 export async function duplicateInvoice(id: string) {
   const original = await getInvoice(id);
   if (!original) return null;
-  const { data, error } = await db
+  const { data, error } = await db()
     .from('invoices')
     .insert({
       client_id: original.client_id,
@@ -69,7 +76,7 @@ export async function duplicateInvoice(id: string) {
     unit_price: l.unit_price,
     line_total: l.line_total,
   }));
-  await db.from('invoice_lines').insert(lines);
+  await db().from('invoice_lines').insert(lines);
   return data.id;
 }
 
@@ -81,7 +88,7 @@ export async function createInvoiceWithClient(params: {
 }) {
   const { client, company, invoice, lines } = params;
   // client
-  const { data: cData, error: cErr } = await db
+  const { data: cData, error: cErr } = await db()
     .from('clients')
     .insert({
       name: client.name,
@@ -97,7 +104,7 @@ export async function createInvoiceWithClient(params: {
   const tvaAmount = invoice.tva_enabled ? (subtotal * invoice.tva_rate) / 100 : 0;
   const total = subtotal + tvaAmount;
 
-  const { data: inv, error: invErr } = await db
+  const { data: inv, error: invErr } = await db()
     .from('invoices')
     .insert({
       client_id: cData.id,
@@ -130,7 +137,7 @@ export async function createInvoiceWithClient(params: {
     unit_price: l.unit_price,
     line_total: l.qty * l.unit_price,
   }));
-  const { error: lErr } = await db.from('invoice_lines').insert(linesPayload);
+  const { error: lErr } = await db().from('invoice_lines').insert(linesPayload);
   if (lErr) throw lErr;
 
   return inv.id;
@@ -148,14 +155,14 @@ export async function updateInvoiceFull(params: {
   const tvaAmount = invoice.tva_enabled ? (subtotal * invoice.tva_rate) / 100 : 0;
   const total = subtotal + tvaAmount;
 
-  await db.from('clients').update({
+  await db().from('clients').update({
     name: client.name,
     address: client.address,
     email: client.email,
     phone: client.phone,
   }).eq('id', client.id);
 
-  await db.from('invoices').update({
+  await db().from('invoices').update({
     issue_date: invoice.issue_date,
     due_date: invoice.due_date || null,
     reference: invoice.reference || null,
@@ -173,7 +180,7 @@ export async function updateInvoiceFull(params: {
     total_ttc: total,
   }).eq('id', invoiceId);
 
-  await db.from('invoice_lines').delete().eq('invoice_id', invoiceId);
+  await db().from('invoice_lines').delete().eq('invoice_id', invoiceId);
   const linesPayload = lines.map((l) => ({
     invoice_id: invoiceId,
     description: l.description,
@@ -182,5 +189,5 @@ export async function updateInvoiceFull(params: {
     unit_price: l.unit_price,
     line_total: l.qty * l.unit_price,
   }));
-  await db.from('invoice_lines').insert(linesPayload);
+  await db().from('invoice_lines').insert(linesPayload);
 }
