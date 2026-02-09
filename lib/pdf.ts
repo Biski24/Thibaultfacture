@@ -43,7 +43,7 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
   doc.text(dateText, pageWidth - margin - dateWidth, 70);
 
   // INFORMATIONS ÉMETTEUR ET CLIENT
-  let y = 150;
+  let y = 140;
 
   // Carte émetteur (gauche)
   drawInfoCard(doc, {
@@ -72,22 +72,13 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
   });
 
   // TABLEAU DES LIGNES
-  const tableY = y + 120;
+  const tableY = y + 140;
 
   const rows = invoice.lines.map((line) => [
-    {
-      content: line.description,
-      styles: { fontStyle: 'normal' as const, textColor: COLORS.text },
-    },
-    {
-      content: line.qty.toString(),
-      styles: { halign: 'center' as const, textColor: COLORS.text },
-    },
-    {
-      content: formatCurrency(line.line_total),
-      styles: { halign: 'right' as const, fontStyle: 'bold' as const, textColor: COLORS.text },
-    },
-  ]) as CellDef[][];
+    line.description,
+    line.qty.toString(),
+    formatCurrency(line.line_total),
+  ]);
 
   autoTable(doc, {
     startY: tableY,
@@ -128,60 +119,18 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
     },
   });
 
-  // TOTAUX AVEC DESIGN MODERNE
-  const finalY = (doc as any).lastAutoTable.finalY + 30;
-
-  // Encadré des totaux
-  const totalsX = pageWidth - margin - 200;
-  const totalsY = finalY;
-  const totalsWidth = 200;
-  const totalsHeight = 100;
-
-  // Fond léger
-  doc.setFillColor(...COLORS.background);
-  doc.roundedRect(totalsX, totalsY, totalsWidth, totalsHeight, 5, 5, 'F');
-
-  // Bordure
-  doc.setDrawColor(...COLORS.border);
-  doc.setLineWidth(1);
-  doc.roundedRect(totalsX, totalsY, totalsWidth, totalsHeight, 5, 5, 'S');
-
-  // Contenu des totaux
-  let totalY = totalsY + 25;
+  // TOTAUX SIMPLIFIÉS
+  const finalY = (doc as any).lastAutoTable.finalY + 24;
   doc.setFontSize(10);
-  doc.setTextColor(...COLORS.textLight);
-  doc.text('Total HT', totalsX + 15, totalY);
   doc.setTextColor(...COLORS.text);
+  doc.text(`Total HT : ${formatCurrency(invoice.total_ttc)}`, margin, finalY);
   doc.setFont('helvetica', 'bold');
-  const totalHT = formatCurrency(invoice.total_ttc);
-  const totalHTWidth = doc.getTextWidth(totalHT);
-  doc.text(totalHT, totalsX + totalsWidth - 15 - totalHTWidth, totalY);
-
-  totalY += 20;
-  doc.setFont('helvetica', 'normal');
-  doc.setFontSize(9);
-  doc.setTextColor(...COLORS.textLight);
-  doc.text('TVA non applicable', totalsX + 15, totalY);
-  doc.text('0,00 €', totalsX + totalsWidth - 15 - doc.getTextWidth('0,00 €'), totalY);
-
-  // Ligne de séparation
-  totalY += 10;
-  doc.setDrawColor(...COLORS.primary);
-  doc.setLineWidth(1);
-  doc.line(totalsX + 15, totalY, totalsX + totalsWidth - 15, totalY);
-
-  // Total à payer (mis en valeur)
-  totalY += 20;
-  doc.setFontSize(12);
   doc.setTextColor(...COLORS.accent);
-  doc.setFont('helvetica', 'bold');
-  doc.text('TOTAL À PAYER', totalsX + 15, totalY);
-  const totalPayer = formatCurrency(invoice.total_ttc);
-  const totalPayerWidth = doc.getTextWidth(totalPayer);
-  doc.text(totalPayer, totalsX + totalsWidth - 15 - totalPayerWidth, totalY);
+  doc.text(`TOTAL À PAYER : ${formatCurrency(invoice.total_ttc)}`, margin, finalY + 18);
+  doc.setFont('helvetica', 'normal');
 
   // MENTIONS LÉGALES ET NOTES
-  let mentionsY = totalsY + totalsHeight + 30;
+  let mentionsY = finalY + 40;
 
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
@@ -226,7 +175,19 @@ function drawInfoCard(
   const { title, x, y, width, lines } = config;
   const lineHeight = 14;
   const padding = 12;
-  const height = padding * 2 + lineHeight * (lines.length + 1);
+  // Calculer la hauteur totale en tenant compte des retours à la ligne
+  let totalLines = 1; // Pour le titre
+  doc.setFontSize(9);
+  doc.setFont('helvetica', 'normal');
+
+  lines.forEach((line) => {
+    if (line) {
+      const splitLine = doc.splitTextToSize(line, width - padding * 2);
+      totalLines += splitLine.length;
+    }
+  });
+
+  const height = padding * 2 + lineHeight * totalLines;
 
   // Fond de la carte
   doc.setFillColor(...COLORS.background);

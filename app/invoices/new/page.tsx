@@ -202,9 +202,7 @@ function Input({
   onChange?: (value: string) => void;
   [key: string]: any;
 }) {
-  const handleChange = (e: ChangeEvent<HTMLInputElement>) => {
-    onChange?.(e.target.value);
-  };
+  const handleChange = (e: ChangeEvent<HTMLInputElement>) => onChange?.(e.target.value);
   return (
     <label className={`block space-y-1 ${className}`}>
       <span className="label">{label}</span>
