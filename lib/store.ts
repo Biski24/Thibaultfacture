@@ -83,7 +83,15 @@ export async function duplicateInvoice(id: string) {
 export async function createInvoiceWithClient(params: {
   client: { name: string; address?: string; email?: string; phone?: string };
   company: { name?: string; address?: string; phone?: string; email?: string; siret?: string; logo_url?: string };
-  invoice: { issue_date: string; due_date?: string; reference?: string; notes?: string; tva_enabled: boolean; tva_rate: number };
+  invoice: {
+    number?: string;
+    issue_date: string;
+    due_date?: string;
+    reference?: string;
+    notes?: string;
+    tva_enabled: boolean;
+    tva_rate: number;
+  };
   lines: InvoiceFormLine[];
 }) {
   const { client, company, invoice, lines } = params;
@@ -107,6 +115,7 @@ export async function createInvoiceWithClient(params: {
   const { data: inv, error: invErr } = await db()
     .from('invoices')
     .insert({
+      number: invoice.number?.trim() || null,
       client_id: cData.id,
       issue_date: invoice.issue_date,
       due_date: invoice.due_date || null,

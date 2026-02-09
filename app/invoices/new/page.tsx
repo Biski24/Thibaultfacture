@@ -1,9 +1,9 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useMemo, useState, ChangeEvent } from 'react';
-import { InvoiceFormLine } from '@/lib/types';
+import { FormEvent, useMemo, useState, ChangeEvent, useEffect } from 'react';
+import { InvoiceFormLine, InvoiceWithRelations } from '@/lib/types';
 import { computeTotals } from '@/lib/calc';
-import { createInvoiceWithClient } from '@/lib/store';
+import { createInvoiceWithClient, listInvoices } from '@/lib/store';
 import { COMPANY } from '@/lib/company';
 
 const emptyLine: InvoiceFormLine = { description: 'Prestation de services', qty: 1, unit: 'unité', unit_price: 0 };
@@ -12,7 +12,10 @@ export default function NewInvoicePage() {
   const router = useRouter();
   const [client, setClient] = useState({ name: '', address: '', email: '', phone: '' });
   const [company, setCompany] = useState({ ...COMPANY });
+  const [knownInvoices, setKnownInvoices] = useState<InvoiceWithRelations[]>([]);
+  const [invoiceNumberEdited, setInvoiceNumberEdited] = useState(false);
   const [invoice, setInvoice] = useState({
+    number: '',
     issue_date: new Date().toISOString().slice(0, 10),
     due_date: '',
     reference: '',
@@ -26,12 +29,32 @@ export default function NewInvoicePage() {
 
   const totals = useMemo(() => computeTotals(lines, invoice.tva_enabled, invoice.tva_rate), [lines, invoice]);
 
+  useEffect(() => {
+    const loadInvoiceHistory = async () => {
+      try {
+        const data = await listInvoices();
+        setKnownInvoices(data);
+        setInvoice((prev) => ({ ...prev, number: getSuggestedInvoiceNumber(data, prev.issue_date) }));
+      } catch {
+        // Keep form usable even if history cannot be loaded.
+      }
+    };
+    loadInvoiceHistory();
+  }, []);
+
   const updateLine = (index: number, payload: Partial<InvoiceFormLine>) => {
     setLines((prev) => prev.map((l, i) => (i === index ? { ...l, ...payload } : l)));
   };
 
   const addLine = () => setLines((prev) => [...prev, { ...emptyLine }]);
   const removeLine = (index: number) => setLines((prev) => prev.filter((_, i) => i !== index));
+
+  const handleIssueDateChange = (value: string) => {
+    setInvoice((prev) => {
+      if (invoiceNumberEdited) return { ...prev, issue_date: value };
+      return { ...prev, issue_date: value, number: getSuggestedInvoiceNumber(knownInvoices, value) };
+    });
+  };
 
   const handleSubmit = async (e: FormEvent) => {
     e.preventDefault();
@@ -42,6 +65,7 @@ export default function NewInvoicePage() {
       return;
     }
 
+    if (!invoice.number.trim()) return setError('Numéro de facture requis');
     if (!client.name) return setError('Client requis');
     if (lines.length === 0 || lines.some((l) => !l.description || l.qty <= 0 || l.unit_price < 0)) {
       return setError('Ajoute au moins une ligne valide (quantité > 0, prix >= 0).');
@@ -53,7 +77,11 @@ export default function NewInvoicePage() {
       const id = await createInvoiceWithClient({ client, company, invoice, lines });
       router.push(`/invoices/${id}`);
     } catch (err: any) {
-      setError(err?.message || 'Enregistrement impossible.');
+      if (err?.code === '23505') {
+        setError('Numéro de facture déjà utilisé.');
+      } else {
+        setError(err?.message || 'Enregistrement impossible.');
+      }
     } finally {
       setLoading(false);
     }
@@ -87,9 +115,18 @@ export default function NewInvoicePage() {
 
         <Section title="Facture">
           <div className="grid grid-cols-1 md:grid-cols-3 gap-4">
-            <Input label="Date" type="date" value={invoice.issue_date} onChange={(v) => setInvoice({ ...invoice, issue_date: v })} required />
+            <Input
+              label="Numéro"
+              value={invoice.number}
+              onChange={(v) => {
+                setInvoiceNumberEdited(true);
+                setInvoice({ ...invoice, number: v });
+              }}
+              required
+            />
+            <Input label="Date" type="date" value={invoice.issue_date} onChange={handleIssueDateChange} required />
             <Input label="Échéance" type="date" value={invoice.due_date} onChange={(v) => setInvoice({ ...invoice, due_date: v })} />
-            <Input label="Référence chantier" value={invoice.reference} onChange={(v) => setInvoice({ ...invoice, reference: v })} />
+            <Input label="Référence chantier" value={invoice.reference} onChange={(v) => setInvoice({ ...invoice, reference: v })} className="md:col-span-3" />
           </div>
         </Section>
 
@@ -213,6 +250,22 @@ function Input({
       <input className="input" onChange={handleChange} {...rest} />
     </label>
   );
+}
+
+function getSuggestedInvoiceNumber(invoices: InvoiceWithRelations[], issueDate: string) {
+  const year = new Date(issueDate).getFullYear();
+  const prefix = `${year}-`;
+
+  let maxValue = 0;
+  for (const inv of invoices) {
+    if (!inv.number || !inv.number.startsWith(prefix)) continue;
+    const parts = inv.number.split('-');
+    if (parts.length !== 2) continue;
+    const parsed = Number(parts[1]);
+    if (!Number.isNaN(parsed)) maxValue = Math.max(maxValue, parsed);
+  }
+
+  return `${year}-${String(maxValue + 1).padStart(4, '0')}`;
 }
 
 function formatCurrency(value: number) {
