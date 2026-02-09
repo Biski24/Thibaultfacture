@@ -9,6 +9,7 @@ export default function Dashboard() {
   const router = useRouter();
   const [totals, setTotals] = useState({ count: 0, pending: 0, paid: 0, revenue: 0 });
   const [latest, setLatest] = useState<InvoiceWithRelations[]>([]);
+  const currentYear = new Date().getFullYear();
 
   useEffect(() => {
     const session = typeof window !== 'undefined' ? localStorage.getItem('session_user') : null;
@@ -18,7 +19,9 @@ export default function Dashboard() {
     }
     const load = async () => {
       const invoices = await listInvoices();
-      const revenue = invoices.reduce((acc, i) => acc + i.total_ttc, 0);
+      const revenue = invoices
+        .filter((i) => new Date(i.issue_date).getFullYear() === currentYear)
+        .reduce((acc, i) => acc + i.total_ttc, 0);
       const pending = invoices.filter((i) => i.status === 'pending').length;
       const paid = invoices.filter((i) => i.status === 'paid').length;
       setTotals({ count: invoices.length, pending, paid, revenue });
@@ -33,14 +36,14 @@ export default function Dashboard() {
         <StatCard label="Factures" value={totals.count} className="w-full" />
         <StatCard label="En attente" value={totals.pending} className="w-full" />
         <StatCard label="Payées" value={totals.paid} className="w-full" />
-        <StatCard label="CA" value={formatCurrency(totals.revenue)} className="w-full" />
+        <StatCard label={`CA `} value={formatCurrency(totals.revenue)} className="w-full" />
       </div>
 
       <div className="hidden flex-wrap gap-4 sm:flex">
         <StatCard label="Factures" value={totals.count} className="w-64" />
         <StatCard label="En attente" value={totals.pending} className="w-64" />
         <StatCard label="Payées" value={totals.paid} className="w-64" />
-        <StatCard label="CA" value={formatCurrency(totals.revenue)} className="w-64" />
+        <StatCard label={`CA `} value={formatCurrency(totals.revenue)} className="w-64" />
       </div>
 
       <div className="card p-4 sm:hidden">
