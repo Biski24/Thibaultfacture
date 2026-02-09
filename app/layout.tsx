@@ -3,8 +3,8 @@ import './globals.css';
 import Link from 'next/link';
 
 export const metadata: Metadata = {
-  title: 'Facturation BTP - MVP',
-  description: 'Création et suivi de factures pour auto-entrepreneur gros œuvre.'
+  title: 'Facture Thibaud',
+  description: 'Création et suivi de factures pour BARUCCHI Thibaud.'
 };
 
 export default function RootLayout({ children }: { children: React.ReactNode }) {
@@ -15,7 +15,7 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
           <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
             <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
               <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-primary">
-                <span>Facturation BTP</span>
+                <span>Facture Thibaud</span>
               </Link>
               <nav className="flex items-center gap-4 text-sm text-slate-600">
                 <Link href="/invoices" className="hover:text-primary">Historique</Link>
