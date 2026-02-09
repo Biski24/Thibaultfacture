@@ -45,9 +45,9 @@ export default function InvoicesPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-center justify-between gap-3">
         <h1 className="text-2xl font-semibold">Historique des factures</h1>
-        <Link className="btn btn-primary" href="/invoices/new">Nouvelle facture</Link>
+        <Link className="btn btn-primary w-full sm:w-auto" href="/invoices/new">Nouvelle facture</Link>
       </div>
 
       <div className="card overflow-x-auto">
@@ -71,23 +71,25 @@ export default function InvoicesPage() {
             )}
             {invoices.map((inv) => (
               <tr key={inv.id} className="border-b last:border-0">
-                <td className="py-3 font-medium">{inv.number}</td>
-                <td>{inv.client.name}</td>
-                <td>{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</td>
-                <td>{formatCurrency(inv.total_ttc)}</td>
+                <td className="py-3 font-medium whitespace-nowrap">{inv.number}</td>
+                <td className="whitespace-nowrap">{inv.client.name}</td>
+                <td className="whitespace-nowrap">{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</td>
+                <td className="whitespace-nowrap">{formatCurrency(inv.total_ttc)}</td>
                 <td>
                   <span className={`badge ${inv.status === 'paid' ? 'badge-success' : 'badge-warning'}`}>
                     {inv.status === 'paid' ? 'Payée' : 'En attente'}
                   </span>
                 </td>
-                <td className="space-x-2 text-sm">
-                  <Link className="text-accent" href={`/invoices/${inv.id}`}>Voir</Link>
-                  <button className="text-accent" onClick={() => generateInvoicePdf(inv)}>PDF</button>
-                  <button className="text-accent" onClick={() => duplicate(inv)}>Dupliquer</button>
-                  <button className="text-accent" onClick={() => updateStatus(inv.id, inv.status === 'paid' ? 'pending' : 'paid')}>
-                    {inv.status === 'paid' ? 'Marquer impayée' : 'Marquer payée'}
-                  </button>
-                  <button className="text-red-600" onClick={() => remove(inv.id)}>Supprimer</button>
+                <td className="py-3">
+                  <div className="flex min-w-[18rem] flex-wrap gap-x-3 gap-y-1 text-sm">
+                    <Link className="text-accent" href={`/invoices/${inv.id}`}>Voir</Link>
+                    <button className="text-accent" onClick={() => generateInvoicePdf(inv)}>PDF</button>
+                    <button className="text-accent" onClick={() => duplicate(inv)}>Dupliquer</button>
+                    <button className="text-accent" onClick={() => updateStatus(inv.id, inv.status === 'paid' ? 'pending' : 'paid')}>
+                      {inv.status === 'paid' ? 'Marquer impayée' : 'Marquer payée'}
+                    </button>
+                    <button className="text-red-600" onClick={() => remove(inv.id)}>Supprimer</button>
+                  </div>
                 </td>
               </tr>
             ))}

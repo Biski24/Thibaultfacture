@@ -13,17 +13,17 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
       <body className="bg-slate-50">
         <div className="min-h-screen">
           <header className="border-b border-slate-200 bg-white/80 backdrop-blur">
-            <div className="mx-auto flex h-14 max-w-6xl items-center justify-between px-4">
-              <Link href="/dashboard" className="flex items-center gap-2 font-semibold text-primary">
+            <div className="mx-auto flex max-w-6xl flex-wrap items-center justify-between gap-3 px-4 py-3 sm:h-14 sm:flex-nowrap sm:py-0">
+              <Link href="/dashboard" className="flex items-center gap-2 text-base font-semibold text-primary sm:text-lg">
                 <span>Facture Thibaud</span>
               </Link>
-              <nav className="flex items-center gap-4 text-sm text-slate-600">
+              <nav className="flex w-full flex-wrap items-center gap-3 text-sm text-slate-600 sm:w-auto sm:justify-end sm:gap-4">
                 <Link href="/invoices" className="hover:text-primary">Historique</Link>
                 <Link href="/invoices/new" className="hover:text-primary">Nouvelle facture</Link>
               </nav>
             </div>
           </header>
-          <main className="mx-auto max-w-6xl px-4 py-8">{children}</main>
+          <main className="mx-auto max-w-6xl px-4 py-6 sm:py-8">{children}</main>
         </div>
       </body>
     </html>

@@ -178,7 +178,7 @@ export default function NewInvoicePage() {
         {error && <p className="text-sm text-red-600">{error}</p>}
 
         <div className="flex justify-end pt-2">
-          <button className="btn btn-primary" type="submit" disabled={loading}>
+          <button className="btn btn-primary w-full sm:w-auto" type="submit" disabled={loading}>
             {loading ? 'Enregistrement...' : 'Enregistrer & générer'}
           </button>
         </div>

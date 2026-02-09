@@ -94,19 +94,19 @@ export default function InvoiceDetailPage() {
 
   return (
     <div className="space-y-6">
-      <div className="flex items-center justify-between">
+      <div className="flex flex-wrap items-start justify-between gap-3">
         <div>
           <h1 className="text-2xl font-semibold">Facture {invoice.number}</h1>
           <p className="text-slate-500">Émise le {new Date(invoice.issue_date).toLocaleDateString('fr-FR')}</p>
         </div>
-        <div className="flex gap-2">
-          <button className="btn btn-secondary" onClick={() => router.push('/invoices')}>Retour</button>
-          <button className="btn btn-secondary" onClick={() => setEdit((v) => !v)}>{edit ? 'Annuler' : 'Modifier'}</button>
-          <button className="btn btn-primary" onClick={() => generateInvoicePdf(invoice)}>Télécharger PDF</button>
+        <div className="flex w-full flex-wrap gap-2 sm:w-auto sm:justify-end">
+          <button className="btn btn-secondary w-full sm:w-auto" onClick={() => router.push('/invoices')}>Retour</button>
+          <button className="btn btn-secondary w-full sm:w-auto" onClick={() => setEdit((v) => !v)}>{edit ? 'Annuler' : 'Modifier'}</button>
+          <button className="btn btn-primary w-full sm:w-auto" onClick={() => generateInvoicePdf(invoice)}>Télécharger PDF</button>
         </div>
       </div>
 
-      <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
+      <div className="grid grid-cols-1 gap-4 md:grid-cols-2">
         <InfoCard title="Entreprise">
           {edit ? (
             <div className="space-y-2">
@@ -145,7 +145,7 @@ export default function InvoiceDetailPage() {
         </InfoCard>
       </div>
 
-      <div className="card p-4 overflow-x-auto">
+      <div className="card overflow-x-auto p-4">
         <table className="min-w-full text-sm">
           <thead>
             <tr className="border-b">
@@ -157,7 +157,7 @@ export default function InvoiceDetailPage() {
           <tbody>
             {(edit ? lines : invoice.lines).map((l, idx) => (
               <tr key={edit ? idx : (l as any).id ?? idx} className="border-b last:border-0">
-                <td className="py-3 break-words">
+                <td className="py-3 break-words min-w-[12rem]">
                   {edit ? (
                     <input
                       className="input"
@@ -168,7 +168,7 @@ export default function InvoiceDetailPage() {
                     l.description
                   )}
                 </td>
-                <td className="break-words">
+                <td className="break-words min-w-[8rem]">
                   {edit ? (
                     <input
                       className="input"
@@ -182,7 +182,7 @@ export default function InvoiceDetailPage() {
                     l.qty
                   )}
                 </td>
-                <td className="break-words">
+                <td className="break-words min-w-[10rem] whitespace-nowrap">
                   {edit ? (
                     <input
                       className="input"
@@ -202,16 +202,16 @@ export default function InvoiceDetailPage() {
         </table>
       </div>
 
-      <div className="card p-4 space-y-2 text-sm">
+      <div className="card space-y-2 p-4 text-sm">
         <div className="flex justify-between"><span>Sous-total HT</span><span>{formatCurrency(edit ? totals.subtotal : invoice.subtotal_ht)}</span></div>
         {edit ? (
           <></>
         ) : null}
-        <div className="flex justify-between font-semibold text-lg">
+        <div className="flex justify-between text-lg font-semibold">
           <span>Total HT</span>
           <span>{formatCurrency(edit ? totals.total : invoice.total_ttc)}</span>
         </div>
-        <p className="text-sm text-slate-600 pt-2">TVA non applicable, art. 293 B du CGI</p>
+        <p className="pt-2 text-sm text-slate-600">TVA non applicable, art. 293 B du CGI</p>
         {edit ? (
           <textarea
             className="input h-20"
@@ -220,14 +220,18 @@ export default function InvoiceDetailPage() {
             placeholder="Notes"
           />
         ) : (
-          invoice.notes && <p className="text-slate-600 pt-2">{invoice.notes}</p>
+          invoice.notes && <p className="pt-2 text-slate-600 break-words">{invoice.notes}</p>
         )}
       </div>
 
+      {error && <p className="text-sm text-red-600">{error}</p>}
+
       {edit && (
-        <div className="flex gap-3 justify-end">
-          <button className="btn btn-secondary" onClick={() => setEdit(false)}>Annuler</button>
-          <button className="btn btn-primary" onClick={handleSave}>Enregistrer</button>
+        <div className="flex flex-wrap justify-end gap-3">
+          <button className="btn btn-secondary w-full sm:w-auto" onClick={() => setEdit(false)}>Annuler</button>
+          <button className="btn btn-primary w-full sm:w-auto" onClick={handleSave} disabled={saving}>
+            {saving ? 'Enregistrement...' : 'Enregistrer'}
+          </button>
         </div>
       )}
     </div>
@@ -236,7 +240,7 @@ export default function InvoiceDetailPage() {
 
 function InfoCard({ title, children }: { title: string; children: React.ReactNode }) {
   return (
-    <div className="card p-4 space-y-1">
+    <div className="card space-y-1 p-4">
       <h2 className="text-sm font-semibold uppercase text-slate-500">{title}</h2>
       {children}
     </div>
