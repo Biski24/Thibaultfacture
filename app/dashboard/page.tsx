@@ -33,7 +33,7 @@ export default function Dashboard() {
         <StatCard label="Factures" value={totals.count} />
         <StatCard label="En attente" value={totals.pending} />
         <StatCard label="Payées" value={totals.paid} />
-        <StatCard label="Chiffre (TTC)" value={formatCurrency(totals.revenue)} />
+        <StatCard label="CA" value={formatCurrency(totals.revenue)} />
       </div>
 
       <div className="card p-5">
