@@ -73,7 +73,6 @@ export default function NewInvoicePage() {
             <Input label="Téléphone" value={company.phone} onChange={(v) => setCompany({ ...company, phone: v })} />
             <Input label="Email" type="email" value={company.email} onChange={(v) => setCompany({ ...company, email: v })} />
             <Input label="Adresse" value={company.address} onChange={(v) => setCompany({ ...company, address: v })} className="md:col-span-2" />
-            <Input label="Logo (URL)" value={company.logo_url} onChange={(v) => setCompany({ ...company, logo_url: v })} className="md:col-span-2" />
           </div>
         </Section>
 
