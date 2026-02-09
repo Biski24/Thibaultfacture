@@ -1,10 +1,18 @@
 'use client';
 import Link from 'next/link';
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { InvoiceWithRelations } from '@/lib/types';
 import { generateInvoicePdf } from '@/lib/pdf';
 import { listInvoices, updateInvoiceStatus, deleteInvoice, duplicateInvoice } from '@/lib/store';
 import { useRouter } from 'next/navigation';
+
+type YearGroup = {
+  year: string;
+  invoices: InvoiceWithRelations[];
+  total: number;
+  paid: number;
+  pending: number;
+};
 
 export default function InvoicesPage() {
   const router = useRouter();
@@ -26,6 +34,22 @@ export default function InvoicesPage() {
   useEffect(() => {
     load();
   }, []);
+
+  const groupedByYear = useMemo<YearGroup[]>(() => {
+    const map = new Map<string, YearGroup>();
+
+    for (const inv of invoices) {
+      const year = new Date(inv.issue_date).getFullYear().toString();
+      const current = map.get(year) || { year, invoices: [], total: 0, paid: 0, pending: 0 };
+      current.invoices.push(inv);
+      current.total += Number(inv.total_ttc) || 0;
+      if (inv.status === 'paid') current.paid += 1;
+      else current.pending += 1;
+      map.set(year, current);
+    }
+
+    return Array.from(map.values()).sort((a, b) => Number(b.year) - Number(a.year));
+  }, [invoices]);
 
   const updateStatus = async (id: string, status: 'paid' | 'pending') => {
     await updateInvoiceStatus(id, status);
@@ -130,6 +154,43 @@ export default function InvoicesPage() {
             ))}
           </tbody>
         </table>
+      </div>
+
+      <div className="card p-4 sm:p-5">
+        <h2 className="text-lg font-semibold">Historique par année</h2>
+        <p className="mt-1 text-sm text-slate-600">Regroupement automatique des factures et du CA par année civile.</p>
+
+        {loading && <p className="pt-4 text-sm text-slate-600">Chargement...</p>}
+        {!loading && groupedByYear.length === 0 && <p className="pt-4 text-sm text-slate-600">Aucune donnée annuelle.</p>}
+
+        <div className="mt-4 space-y-3">
+          {!loading && groupedByYear.map((group, index) => (
+            <details key={group.year} className="rounded-lg border border-slate-200 p-3" open={index === 0}>
+              <summary className="cursor-pointer list-none">
+                <div className="flex flex-wrap items-center justify-between gap-2">
+                  <p className="text-base font-semibold">{group.year}</p>
+                  <p className="text-sm font-medium">CA: {formatCurrency(group.total)}</p>
+                </div>
+                <p className="mt-1 text-xs text-slate-600">
+                  {group.invoices.length} facture(s) • {group.paid} payée(s) • {group.pending} en attente
+                </p>
+              </summary>
+
+              <div className="mt-3 space-y-2 border-t border-slate-100 pt-3">
+                {group.invoices.map((inv) => (
+                  <div key={inv.id} className="flex flex-wrap items-center justify-between gap-x-3 gap-y-1 rounded-md bg-slate-50 px-3 py-2 text-sm">
+                    <div className="min-w-[12rem]">
+                      <p className="font-medium">{inv.number}</p>
+                      <p className="text-slate-600">{inv.client.name}</p>
+                    </div>
+                    <p className="text-slate-600">{new Date(inv.issue_date).toLocaleDateString('fr-FR')}</p>
+                    <p className="font-medium">{formatCurrency(inv.total_ttc)}</p>
+                  </div>
+                ))}
+              </div>
+            </details>
+          ))}
+        </div>
       </div>
     </div>
   );
