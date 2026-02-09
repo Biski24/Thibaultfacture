@@ -1,6 +1,6 @@
 'use client';
 import { useRouter } from 'next/navigation';
-import { FormEvent, useMemo, useState, ChangeEvent, useEffect } from 'react';
+import { FormEvent, useMemo, useState, ChangeEvent, useEffect, useRef } from 'react';
 import { InvoiceFormLine, InvoiceWithRelations } from '@/lib/types';
 import { computeTotals } from '@/lib/calc';
 import { createInvoiceWithClient, listInvoices } from '@/lib/store';
@@ -14,6 +14,7 @@ export default function NewInvoicePage() {
   const [company, setCompany] = useState({ ...COMPANY });
   const [knownInvoices, setKnownInvoices] = useState<InvoiceWithRelations[]>([]);
   const [invoiceNumberEdited, setInvoiceNumberEdited] = useState(false);
+  const invoiceNumberEditedRef = useRef(false);
   const [invoice, setInvoice] = useState({
     number: '',
     issue_date: new Date().toISOString().slice(0, 10),
@@ -34,7 +35,10 @@ export default function NewInvoicePage() {
       try {
         const data = await listInvoices();
         setKnownInvoices(data);
-        setInvoice((prev) => ({ ...prev, number: getSuggestedInvoiceNumber(data, prev.issue_date) }));
+        setInvoice((prev) => {
+          if (invoiceNumberEditedRef.current || prev.number.trim()) return prev;
+          return { ...prev, number: getSuggestedInvoiceNumber(data, prev.issue_date) };
+        });
       } catch {
         // Keep form usable even if history cannot be loaded.
       }
@@ -120,6 +124,7 @@ export default function NewInvoicePage() {
               value={invoice.number}
               onChange={(v) => {
                 setInvoiceNumberEdited(true);
+                invoiceNumberEditedRef.current = true;
                 setInvoice({ ...invoice, number: v });
               }}
               required
