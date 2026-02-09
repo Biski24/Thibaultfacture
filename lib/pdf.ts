@@ -1,5 +1,5 @@
 import jsPDF from 'jspdf';
-import autoTable from 'jspdf-autotable';
+import autoTable, { CellDef } from 'jspdf-autotable';
 import { InvoiceWithRelations } from './types';
 
 // Palette de couleurs professionnelle
@@ -19,9 +19,7 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
   const pageHeight = doc.internal.pageSize.getHeight();
   const margin = 50;
 
-  // ============================================
   // HEADER AVEC BANDEAU DE COULEUR
-  // ============================================
   doc.setFillColor(...COLORS.primary);
   doc.rect(0, 0, pageWidth, 120, 'F');
 
@@ -44,9 +42,7 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
   const dateWidth = doc.getTextWidth(dateText);
   doc.text(dateText, pageWidth - margin - dateWidth, 70);
 
-  // ============================================
   // INFORMATIONS ÉMETTEUR ET CLIENT
-  // ============================================
   let y = 150;
 
   // Carte émetteur (gauche)
@@ -75,25 +71,23 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
     ].filter(Boolean),
   });
 
-  // ============================================
   // TABLEAU DES LIGNES
-  // ============================================
   const tableY = y + 120;
 
   const rows = invoice.lines.map((line) => [
     {
       content: line.description,
-      styles: { fontStyle: 'normal', textColor: COLORS.text },
+      styles: { fontStyle: 'normal' as const, textColor: COLORS.text },
     },
     {
       content: line.qty.toString(),
-      styles: { halign: 'center', textColor: COLORS.text },
+      styles: { halign: 'center' as const, textColor: COLORS.text },
     },
     {
       content: formatCurrency(line.line_total),
-      styles: { halign: 'right', fontStyle: 'bold', textColor: COLORS.text },
+      styles: { halign: 'right' as const, fontStyle: 'bold' as const, textColor: COLORS.text },
     },
-  ]);
+  ]) as CellDef[][];
 
   autoTable(doc, {
     startY: tableY,
@@ -115,8 +109,8 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
     },
     columnStyles: {
       0: { cellWidth: 300 },
-      1: { cellWidth: 80, halign: 'center' },
-      2: { cellWidth: 110, halign: 'right' },
+      1: { cellWidth: 80, halign: 'center' as const },
+      2: { cellWidth: 110, halign: 'right' as const },
     },
     margin: { left: margin, right: margin },
     didDrawCell: (data) => {
@@ -134,9 +128,7 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
     },
   });
 
-  // ============================================
   // TOTAUX AVEC DESIGN MODERNE
-  // ============================================
   const finalY = (doc as any).lastAutoTable.finalY + 30;
 
   // Encadré des totaux
@@ -188,18 +180,14 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
   const totalPayerWidth = doc.getTextWidth(totalPayer);
   doc.text(totalPayer, totalsX + totalsWidth - 15 - totalPayerWidth, totalY);
 
-  // ============================================
   // MENTIONS LÉGALES ET NOTES
-  // ============================================
   let mentionsY = totalsY + totalsHeight + 30;
 
-  // Mention TVA
   doc.setFontSize(9);
   doc.setFont('helvetica', 'italic');
   doc.setTextColor(...COLORS.textLight);
   doc.text('TVA non applicable – article 293B du CGI', margin, mentionsY);
 
-  // Notes
   if (invoice.notes) {
     mentionsY += 25;
     doc.setFont('helvetica', 'normal');
@@ -212,9 +200,7 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
     doc.text(splitNotes, margin, mentionsY);
   }
 
-  // ============================================
   // FOOTER
-  // ============================================
   const footerY = pageHeight - 30;
   doc.setDrawColor(...COLORS.border);
   doc.setLineWidth(0.5);
@@ -231,9 +217,7 @@ export function generateInvoicePdf(invoice: InvoiceWithRelations) {
   doc.save(`facture-${invoice.number}.pdf`);
 }
 
-// ============================================
-// FONCTIONS UTILITAIRES
-// ============================================
+// UTILITAIRES
 
 function drawInfoCard(
   doc: jsPDF,
