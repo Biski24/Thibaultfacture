@@ -2,8 +2,10 @@
 import { useRouter } from 'next/navigation';
 import { FormEvent, useState } from 'react';
 
-const USERNAME = 'Amandine';
-const PASSWORD = 'Bastienlebest';
+const USERS = [
+  { username: 'Amandine', password: 'Bastienlebest' },
+  { username: 'Thibaud', password: 'TeqPaf' },
+];
 
 export default function LoginPage() {
   const router = useRouter();
@@ -13,8 +15,10 @@ export default function LoginPage() {
 
   const handleSubmit = (e: FormEvent) => {
     e.preventDefault();
-    if (username === USERNAME && password === PASSWORD) {
-      localStorage.setItem('session_user', USERNAME);
+    const matchedUser = USERS.find((user) => user.username === username && user.password === password);
+
+    if (matchedUser) {
+      localStorage.setItem('session_user', matchedUser.username);
       router.replace('/dashboard');
     } else {
       setError('Identifiants invalides');
